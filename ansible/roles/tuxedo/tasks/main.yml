@@ -180,7 +180,8 @@
 # mounted with the 'noexec' option.
 #
 # The installation procedure therefore requires additional steps to be performed
-# which are documented here for reference
+# which are documented here for reference:
+#
 #   - Create a non-tmpfs temporary directory to avoid having to resize the
 #     tmpfs filesystem from the base image or shrink the filesystem before
 #     creating the resulting machine image
