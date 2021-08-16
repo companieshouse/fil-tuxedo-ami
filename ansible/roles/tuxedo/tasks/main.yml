@@ -182,14 +182,14 @@
 # The installation procedure therefore requires additional steps to be performed
 # which are documented here for reference
 #   - Create a non-tmpfs temporary directory to avoid having to resize the
-#     tmpfs filesystem from the base image and shrink the filesystem before
+#     tmpfs filesystem from the base image or shrink the filesystem before
 #     creating the resulting machine image
 #   - Export an environment variable IATEMPDIR with the path to the previously
-#     created temporary directory before before running ids_install to instruct
-#     the installer to use the specified temporary directory
+#     created temporary directory before running ids_install to instruct the
+#     installer to use the specified temporary directory
 #   - Despite using IATEMPDIR, the bundled installer will not relocate all
 #     shared object files to the path specified (e.g. libnativeAPI.so) and the
-#     dynamic loader will be unable to execute these given that the default
+#     dynamic loader will be unable to execute such files given that the default
 #     'noexec' option is enabled for the tmpfs filesystem; to workaround this
 #     the active filesystem is remounted with the 'exec' option, then remounted
 #     again after installation to reinstate the 'noexec' option
