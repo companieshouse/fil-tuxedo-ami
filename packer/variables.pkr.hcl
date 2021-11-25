@@ -50,9 +50,10 @@ variable "playbook_file_path" {
   description = "The relative path to the Ansible playbook file"
 }
 
-variable "resource_bucket_name" {
+variable "resource_bucket_c_libraries_prefix" {
   type        = string
-  description = "The name of the S3 resources bucket"
+  default     = "libraries/c/i686"
+  description = "The object prefix for C shared object libraries within the S3 resources bucket"
 }
 
 variable "resource_bucket_informix_prefix" {
@@ -67,10 +68,15 @@ variable "resource_bucket_informix_sdk_prefix" {
   description = "The object prefix for Informix Client SDK packages within the S3 resources bucket"
 }
 
-variable "resource_bucket_c_libraries_prefix" {
+variable "resource_bucket_name" {
   type        = string
-  default     = "libraries/c/i686"
-  description = "The object prefix for C shared object libraries within the S3 resources bucket"
+  description = "The name of the S3 resources bucket"
+}
+
+variable "resource_bucket_oracle_instant_client_prefix" {
+  type        = string
+  default     = "packages/oracle"
+  description = "The object prefix for Oracle Instant Client packages within the S3 resources bucket"
 }
 
 variable "resource_bucket_tuxedo_license_prefix" {

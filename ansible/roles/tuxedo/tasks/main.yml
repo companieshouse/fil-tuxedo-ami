@@ -34,6 +34,7 @@
       - net-snmp-devel.i686
       - openssl-devel.i686
       - readline-devel.i686
+      - libaio-devel.i686
     state: latest
 
 - name: Install i686 run-time software dependencies
@@ -59,6 +60,42 @@
     owner: root
     group: root
     mode: '0755'
+
+- name: Create temporary directory
+  tempfile:
+    state: directory
+  register: temp_dir
+
+- name: Download Oracle Instant Client archives
+  aws_s3:
+    bucket: "{{ resource_bucket_name }}"
+    object: "{{ resource_bucket_oracle_instant_client_prefix }}/instantclient-{{ item }}-linux-{{ oracle_instant_client_version }}.zip"
+    dest: "{{ temp_dir.path }}/instantclient-{{ item }}-linux-{{ oracle_instant_client_version }}.zip"
+    mode: get
+  loop: "{{ oracle_instant_client_packages }}"
+
+ - name: Create Oracle Instant Client installation directory
+   file:
+     path: "{{ oracle_instant_client_install_directory }}"
+     owner: root
+     group: root
+     mode: '0755'
+     state: directory
+
+- name: Extract Oracle Instant Client archives
+  unarchive:
+    src: "{{ temp_dir.path }}/instantclient-{{ item }}-linux-{{ oracle_instant_client_version }}.zip"
+    dest: "{{ oracle_instant_client_install_directory }}"
+    remote_src: yes
+  loop: "{{ oracle_instant_client_packages }}"
+
+- name: Set ownership of Oracle Instant Client installation files
+  file:
+    path: "{{ oracle_instant_client_install_directory }}"
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
 
 - name: Create service group
   group:
@@ -105,11 +142,6 @@
     group: root
     mode: '0755'
     state: directory
-
-- name: Create temporary directory
-  tempfile:
-    state: directory
-  register: temp_dir
 
 - name: Download Tuxedo archive
   aws_s3:
@@ -195,9 +227,14 @@
 #     the active filesystem is remounted with the 'exec' option, then remounted
 #     again after installation to reinstate the 'noexec' option
 
-- name: Create temporary directory for Informix installation
+- name: Remount tmpfs filesystem at /tmp with 'exec' option
+  ansible.posix.mount:
+    path: /tmp
+    opts: exec
+    state: remounted
+
+- name: Create temporary directory for Informix installer
   tempfile:
-    path: /root
     state: directory
   register: informix_temp_dir
 
@@ -219,20 +256,8 @@
     src: informix_install.properties.j2
     dest: "{{ informix_temp_dir.path }}/informix_install.properties"
 
-- name: Remount tmpfs filesystem at /tmp with 'exec' option
-  ansible.posix.mount:
-    path: /tmp
-    opts: exec
-    state: remounted
-
 - name: Install Informix
   command: "sh {{ informix_temp_dir.path }}/ids_install -i silent -f {{ informix_temp_dir.path }}/informix_install.properties"
-
-- name: Remount tmpfs filesystem at /tmp with 'noexec' option
-  ansible.posix.mount:
-    path: /tmp
-    opts: noexec
-    state: remounted
 
 - name: Set ownership and permissions for Informix installation directory
   file:
@@ -242,7 +267,50 @@
     mode: '0755'
     state: directory
 
-- name: Remove temporary Informix installation directory
+- name: Remove temporary directory for Informix installer
   file:
-    path: informix_temp_dir.path
+    path: temp_dir.path
     state: absent
+
+- name: Create temporary directory for Informix license installer
+  tempfile:
+    state: directory
+  register: informix_license_temp_dir
+
+- name: Install OpenJDK to provide JRE for Informix license installer
+  yum:
+    name:
+      - java-11-openjdk.x86_64
+    state: latest
+
+- name: Download Informix license installer
+  aws_s3:
+    bucket: "{{ resource_bucket_name }}"
+    object: "{{ resource_bucket_informix_prefix }}/informix-license-installer-{{ informix_version }}.tar.gz"
+    dest: "{{ informix_license_temp_dir.path }}/informix-license-installer-{{ informix_version }}.tar.gz"
+    mode: get
+
+- name: Extract Informix license installer
+  unarchive:
+    src: "{{ informix_license_temp_dir.path }}/informix-license-installer-{{ informix_version }}.tar.gz"
+    dest: "{{ informix_license_temp_dir.path }}"
+    remote_src: yes
+
+- name: Create Informix license installer properties file
+  template:
+    src: informix_license_install.properties.j2
+    dest: "{{ informix_license_temp_dir.path }}/informix_license_install.properties"
+
+- name: Install Informix license
+  command: "java -jar {{ informix_license_temp_dir.path }}/we_edition.jar -i silent -f {{ informix_license_temp_dir.path }}/informix_license_install.properties"
+
+- name: Remove temporary directory for Informix license installer
+  file:
+    path: informix_license_temp_dir.path
+    state: absent
+
+- name: Remount tmpfs filesystem at /tmp with 'noexec' option
+  ansible.posix.mount:
+    path: /tmp
+    opts: noexec
+    state: remounted
