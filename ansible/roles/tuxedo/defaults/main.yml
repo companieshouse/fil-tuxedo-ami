@@ -32,8 +32,8 @@ oracle_instant_client_version: 11.2.0.4.0
 oracle_instant_client_install_directory: /opt/oracle-instant-client/{{ oracle_instant_client_version }}
 oracle_instant_client_packages:
   - basic
-  - devel
   - precomp
+  - sdk
 
 # If locale is ever changed from 'C', a symlink with the same name should be created
 # in $TUXDIR/locale pointing at $TUXDIR/locale/C for message strings to resolve correctly
