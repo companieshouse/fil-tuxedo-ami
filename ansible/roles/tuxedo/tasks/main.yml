@@ -269,7 +269,7 @@
 
 - name: Remove temporary directory for Informix installer
   file:
-    path: temp_dir.path
+    path: informix_temp_dir.path
     state: absent
 
 - name: Create temporary directory for Informix license installer
