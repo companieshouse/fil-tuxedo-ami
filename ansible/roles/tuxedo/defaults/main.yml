@@ -16,6 +16,8 @@ tuxedo_service_users:
     uid:  "{{ tuxedo_service_user_id_minimum + (1 * tuxedo_service_user_id_increment) | int }}"
   - name: scud
     uid: "{{ tuxedo_service_user_id_minimum + (2 * tuxedo_service_user_id_increment) | int }}"
+  - name: cabs
+    uid: "{{ tuxedo_service_user_id_minimum + (3 * tuxedo_service_user_id_increment) | int }}"
 
 # Informix Client SDK
 informix_sdk_version: "410UC12"
